@@ -3,14 +3,11 @@ import "util"
 
 local gfx <const> = playdate.graphics
 
-local t_lineTarget = 0
-local t_lineCurrent = 0
-local t_yOffsetTarget = 0
-local t_yOffsetCurrent = 0
-
-local g_textLineCount = 0
+local LINE_MIN <const> = -85
+local t_lineCurrent = LINE_MIN
 local g_textLineTable = {}
 local g_blurbCount = 0
+
 local standardFont
 local halvedFont
 
@@ -39,36 +36,32 @@ function scrollerInit()
     halvedFont = gfx.font.new('fonts/font-full-circle-halved')
 end
 
-function addTextLine(line)
-    print("adding: ", line)
-    if line ~= "<br>" then
-        g_blurbCount += 1
-     end
-     local words = splitLine(line)
-     printTable(words)
-     local nextWord = table.remove(words, 1)
-     print(nextWord)
-     while nextWord ~= nil do
+function addTextLine(line, dontBreak)
+    dontBreak = dontBreak or false
+    g_blurbCount += 1
+    local words = splitLine(line)
+    local nextWord = table.remove(words, 1)
+    while nextWord ~= nil do
         local currentLineWidth = 0
         local currentLine = ""
         while currentLineWidth < (PLAYDATE_MAX_WIDTH - 60) do
-             local currentLineTemp = currentLine .. nextWord .. " "
-             local w, h = gfx.getTextSize(currentLineTemp)
-             if w < PLAYDATE_MAX_WIDTH - 60 then
-                currentLine = currentLineTemp
-                currentLineWidth = w
-             else
-                table.insert(words, 1, nextWord)
-                break
-             end
-             nextWord = table.remove(words, 1)
-             if nextWord == nil then
-                break
-             end
-         end
-         table.insert(g_textLineTable, currentLine)
-         g_textLineCount += 1
-     end
+            local currentLineTemp = currentLine .. nextWord .. " "
+            local w, h = gfx.getTextSize(currentLineTemp)
+            if w < PLAYDATE_MAX_WIDTH - 60 then
+            currentLine = currentLineTemp
+            currentLineWidth = w
+            else
+            table.insert(words, 1, nextWord)
+            break
+            end
+            nextWord = table.remove(words, 1)
+            if nextWord == nil then
+            break
+            end
+        end
+        table.insert(g_textLineTable, currentLine)
+    end
+    table.insert(g_textLineTable, "<br>")
  end
 
 function makeScreenLines()
@@ -85,18 +78,21 @@ function makeScreenLines()
             fprint("setting halved font")
             gfx.setFont(halvedFont)
         end
-        if line == "<br> " then
+        if line == "<br>" then
             m_brOffset += fontHeight / 2
             curBlurb += 1
         else
-            gfx.drawText(line, 50, 15 + m_lineCount * fontHeight + t_lineCurrent + m_brOffset)
+            gfx.drawText(line, 50, 15 + m_lineCount * fontHeight - t_lineCurrent + m_brOffset)
             m_lineCount += 1
         end
     end
  end
 
 function scroll(amount)
-    t_lineCurrent -= (amount * 0.3)
+    local newLineCurrent = t_lineCurrent + (amount * 0.3)
+    if newLineCurrent > LINE_MIN then
+        t_lineCurrent = newLineCurrent
+    end
 end
 
 local cursorVisible = true

@@ -4,6 +4,8 @@ import "util"
 local gfx <const> = playdate.graphics
 local menu <const> = playdate.getSystemMenu()
 
+local SHOW_GRID = false
+
 gfx.setColor(gfx.kColorWhite)
 
 PLAYDATE_MAX_WIDTH = 400
@@ -14,9 +16,8 @@ function playdate.cranked(change, acceleratedChange)
 end
 
 local labels = {
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-    "Donec eu efficitur ante. Curabitur semper leo arcu, ac dictum justo suscipit vel.",
-    "Suspendisse potenti. Aliquam vestibulum ut orci eu egestas. Phasellus vel lacus tellus.",
+    "lorem ipsum dolor sit amet",
+    ".....lorem ipsum dolor sit amet! lorem ipsum dolor sit amet??",
     "Vestibulum tincidunt interdum tortor, at facilisis risus elementum eu.",
     "Praesent dictum, sapien placerat ullamcorper facilisis, odio lorem pretium sem, quis fermentum sem lacus sed turpis.",
     "Nulla vitae convallis enim. Donec pellentesque hendrerit ipsum a tincidunt.",
@@ -27,7 +28,6 @@ local labelIdx = 1
 function playdate.AButtonDown()
 	print("[Button] A button pressed down.")
     addTextLine(labels[labelIdx])
-    addTextLine("<br>")
     labelIdx += 1
     toggleCursor()
 end
@@ -49,6 +49,7 @@ end
 
 local function gameDidLaunch()
     print(" launched!")
+    addTextLine("Welcome to Lipsum Simulator!")
     scrollerInit()
 end
 gameDidLaunch()
@@ -66,11 +67,14 @@ function playdate.update()
     gfx.setColor(gfx.kColorWhite)
     playdate.drawFPS(0,0)
     makeScreenLines()
-    -- drawGrid()
+    if SHOW_GRID then
+        drawGrid()
+    end
 end
 
 function playdate.keyPressed(key)
     if key == "0" then
         menuDumpCalled()
+        SHOW_GRID = not SHOW_GRID
     end
 end
